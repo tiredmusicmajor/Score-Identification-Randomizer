@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blind Score &mdash; Guess the Composer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Work+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="staff-bg" aria-hidden="true">
+  <svg viewBox="0 0 100 40" preserveAspectRatio="none">
+    <line x1="0" y1="8" x2="100" y2="8"></line>
+    <line x1="0" y1="16" x2="100" y2="16"></line>
+    <line x1="0" y1="24" x2="100" y2="24"></line>
+    <line x1="0" y1="32" x2="100" y2="32"></line>
+    <line x1="0" y1="40" x2="100" y2="40"></line>
+  </svg>
+</div>
+
+<header class="site-header">
+  <div class="brand">
+    <span class="brand-mark">&#119070;</span>
+    <div>
+      <h1>Blind Score</h1>
+      <p class="tagline">five bars, no name on the page</p>
+    </div>
+  </div>
+  <div id="progress-indicator" class="progress-indicator hidden">
+    <span id="progress-text">Excerpt 1 of 1</span>
+    <span id="score-text" class="score-text"></span>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- SCREEN 1: Upload -->
+  <section id="screen-upload" class="screen active">
+    <div class="intro-card">
+      <p class="eyebrow">Ear training for the eyes</p>
+      <h2>Upload a stack of scores. We'll shuffle them, crop out the middle, and see if you know the piece.</h2>
+      <p class="lede">Choose as many PDF scores as you like. For each one, five consecutive pages are pulled from the
+      middle 70% of the piece &mdash; nowhere near a title page &mdash; and shown to you at random. Guess the composer
+      and title, then reveal the answer and the real first page.</p>
+
+      <label id="dropzone" for="file-input" class="dropzone">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <path d="M20 26V6M20 6l-7 7M20 6l7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 28v4a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2v-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="dz-title">Drop PDF scores here</span>
+        <span class="dz-sub">or click to browse &middot; multiple files welcome</span>
+      </label>
+      <input type="file" id="file-input" accept="application/pdf" multiple hidden>
+
+      <ul id="file-list" class="file-list" aria-live="polite"></ul>
+
+      <div class="intro-actions">
+        <button id="btn-start" class="btn btn-primary" disabled>Shuffle &amp; begin</button>
+        <span id="file-count" class="file-count"></span>
+      </div>
+      <p class="privacy-note">Everything happens in your browser. Files are never uploaded anywhere.</p>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: Loading a file -->
+  <section id="screen-loading" class="screen">
+    <div class="loading-card">
+      <div class="staff-spinner" aria-hidden="true">
+        <svg viewBox="0 0 120 60">
+          <line x1="0" y1="10" x2="120" y2="10"></line>
+          <line x1="0" y1="22" x2="120" y2="22"></line>
+          <line x1="0" y1="34" x2="120" y2="34"></line>
+          <line x1="0" y1="46" x2="120" y2="46"></line>
+          <line x1="0" y1="58" x2="120" y2="58"></line>
+          <circle class="note" cx="10" cy="34" r="4"></circle>
+        </svg>
+      </div>
+      <p id="loading-text">Opening the score&hellip;</p>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: Quiz -->
+  <section id="screen-quiz" class="screen">
+    <div class="quiz-wrap">
+      <p class="excerpt-note" id="excerpt-note">Pages pulled from the middle of the piece &mdash; no title page, no clues.</p>
+
+      <div class="filmstrip-wrap">
+        <div id="filmstrip" class="filmstrip"></div>
+      </div>
+
+      <form id="guess-form" class="guess-form">
+        <div class="field">
+          <label for="input-composer">Composer</label>
+          <input type="text" id="input-composer" autocomplete="off" placeholder="e.g. Franz Schubert">
+        </div>
+        <div class="field">
+          <label for="input-title">Title / piece</label>
+          <input type="text" id="input-title" autocomplete="off" placeholder="e.g. Impromptu Op. 90 No. 3">
+        </div>
+        <button type="submit" class="btn btn-primary">Reveal answer</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- SCREEN 4: Reveal -->
+  <section id="screen-reveal" class="screen">
+    <div class="reveal-wrap">
+      <div class="reveal-answer">
+        <p class="eyebrow">The score was</p>
+        <h2 id="reveal-filename">&mdash;</h2>
+        <div class="your-guess" id="your-guess"></div>
+        <div class="mark-buttons" id="mark-buttons">
+          <button class="btn btn-mark btn-mark-right" data-mark="right">I had it &#10003;</button>
+          <button class="btn btn-mark btn-mark-wrong" data-mark="wrong">Missed it &#10005;</button>
+        </div>
+      </div>
+      <div class="reveal-page-wrap">
+        <p class="page-caption">First page</p>
+        <canvas id="reveal-canvas" class="reveal-canvas"></canvas>
+      </div>
+      <button id="btn-next" class="btn btn-primary btn-next">Next excerpt &rarr;</button>
+    </div>
+  </section>
+
+  <!-- SCREEN 5: Summary -->
+  <section id="screen-summary" class="screen">
+    <div class="summary-card">
+      <p class="eyebrow">Session complete</p>
+      <h2 id="summary-headline">You made it through the stack.</h2>
+      <p id="summary-score" class="summary-score"></p>
+      <button id="btn-restart" class="btn btn-primary">Start a new round</button>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Built for self-testing on unfamiliar repertoire. Runs entirely client-side.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
