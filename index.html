@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Score Identification Exam Practice</title>
+<title>Score Identification Practice Exam</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Work+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
   <div class="brand">
     <span class="brand-mark">&#119070;</span>
     <div>
-      <h1>Score Identification Exam Practice</h1>
+      <h1>Score Identification Practice Exam</h1>
     </div>
   </div>
   <div id="progress-indicator" class="progress-indicator hidden">
@@ -39,7 +39,7 @@
   <!-- SCREEN 1: Upload -->
   <section id="screen-upload" class="screen active">
     <div class="intro-card">
-      <h2>Upload a stack of scores. The program will shuffle them and present 5 pages.</h2>
+      <h2>Upload a stack of scores. The program will shuffle them and pick a random section.</h2>
       <p class="lede">Choose as many PDF scores as you like. For each one, five consecutive pages are pulled from the
       middle 70% of the piece and shown to you at random. Guess the composer
       and title, then reveal the answer and the real first page.</p>
@@ -84,7 +84,7 @@
   <!-- SCREEN 3: Quiz -->
   <section id="screen-quiz" class="screen">
     <div class="quiz-wrap">
-      <p class="excerpt-note" id="excerpt-note">Pages pulled from the middle of the piece &mdash; no title page, no clues.</p>
+      <p class="excerpt-note" id="excerpt-note">Pages pulled from the middle of the piece.</p>
 
       <div class="filmstrip-wrap">
         <div id="filmstrip" class="filmstrip"></div>
@@ -94,11 +94,11 @@
       <form id="guess-form" class="guess-form">
         <div class="field">
           <label for="input-composer">Composer</label>
-          <input type="text" id="input-composer" autocomplete="off" placeholder="e.g. Karl Heinrich Grossheim">
+          <input type="text" id="input-composer" autocomplete="off" placeholder="e.g. PDQ Bach">
         </div>
         <div class="field">
           <label for="input-title">Title / piece</label>
-          <input type="text" id="input-title" autocomplete="off" placeholder="e.g. Op. 2 no. 4 III">
+          <input type="text" id="input-title" autocomplete="off" placeholder="e.g. The Seasonings">
         </div>
         <button type="submit" class="btn btn-primary">Reveal answer</button>
       </form>
@@ -138,7 +138,6 @@
 </main>
 
 <footer class="site-footer">
-  <p>Built for self-testing on unfamiliar repertoire. Runs entirely client-side.</p>
 </footer>
 
 <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true" aria-label="Full-screen page view">
