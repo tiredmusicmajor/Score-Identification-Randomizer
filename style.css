@@ -313,6 +313,14 @@ main#app{
 }
 .guess-form .btn{ justify-self: start; margin-top: 0.4rem; }
 
+.excerpt-count-field{
+  margin-top: 1.4rem;
+  max-width: 220px;
+}
+.excerpt-count-field input{
+  width: 100px;
+}
+
 /* ---------- reveal screen ---------- */
 .reveal-wrap{
   display:grid;
