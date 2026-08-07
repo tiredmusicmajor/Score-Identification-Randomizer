@@ -4,7 +4,7 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-const EXCERPT_PAGE_COUNT = 5;
+const DEFAULT_PAGES_PER_EXCERPT = 5;
 const MIDDLE_LOWER = 0.15;   // start of the "middle 70%" window
 const MIDDLE_UPPER = 0.85;   // end of the "middle 70%" window
 
@@ -14,6 +14,7 @@ const state = {
   index: -1,           // which file we're currently on
   currentPdf: null,    // pdf.js document proxy for the current file
   currentRange: null,  // { start, count } chosen for this file
+  pagesPerExcerpt: DEFAULT_PAGES_PER_EXCERPT, // set from the upload screen when a round starts
   score: { correct: 0, wrong: 0 },
   marked: null,        // 'right' | 'wrong' | null for the current excerpt
 };
@@ -24,6 +25,7 @@ const el = {
   fileInput: document.getElementById('file-input'),
   fileList: document.getElementById('file-list'),
   fileCount: document.getElementById('file-count'),
+  inputPageCount: document.getElementById('input-page-count'),
   btnStart: document.getElementById('btn-start'),
 
   progressIndicator: document.getElementById('progress-indicator'),
@@ -88,25 +90,25 @@ function prettyName(file) {
   return file.name.replace(/\.pdf$/i, '').replace(/[_-]+/g, ' ').trim();
 }
 
-// picks a window of EXCERPT_PAGE_COUNT consecutive pages inside the middle
-// 70% of the document; falls back to the whole document (minus the first
-// page, which would give away the title) if it's too short for the window
-// to fit inside that middle band.
-function pickPageRange(numPages) {
-  const want = EXCERPT_PAGE_COUNT;
+// picks a window of `want` consecutive pages inside the middle 70% of the
+// document; falls back to as much of the document as possible if it's too
+// short for that window to fit inside the middle band. Page 1 is always
+// excluded, no matter how many pages are requested.
+function pickPageRange(numPages, want) {
   if (numPages < want + 1) {
-    // fewer than 6 pages total — show everything except page 1
+    // not enough pages to show `want` consecutive pages while also skipping page 1
     if (numPages <= 1) {
       return { start: 1, count: numPages }; // only one page exists; nothing else to show
     }
     return { start: 2, count: numPages - 1 };
   }
-  let lower = Math.floor(numPages * MIDDLE_LOWER) + 1;      // 1-indexed
-  let upper = Math.ceil(numPages * MIDDLE_UPPER);           // 1-indexed, inclusive
+  let lower = Math.max(2, Math.floor(numPages * MIDDLE_LOWER) + 1);  // 1-indexed, never page 1
+  let upper = Math.ceil(numPages * MIDDLE_UPPER);                    // 1-indexed, inclusive
   let latestStart = upper - want + 1;
   if (latestStart < lower) {
-    // middle band too narrow for a 5-page window — use the full document instead
-    lower = 1;
+    // middle band too narrow for the requested window — use the full document
+    // (still skipping page 1) instead
+    lower = 2;
     latestStart = numPages - want + 1;
   }
   const start = randInt(lower, latestStart);
@@ -171,6 +173,10 @@ el.dropzone.addEventListener('drop', (e) => {
 
 // ---------- round control ----------
 el.btnStart.addEventListener('click', () => {
+  const requested = parseInt(el.inputPageCount.value, 10);
+  state.pagesPerExcerpt = Number.isFinite(requested) && requested >= 1
+    ? Math.min(requested, 30)
+    : DEFAULT_PAGES_PER_EXCERPT;
   state.files = shuffle(state.files);
   state.index = -1;
   state.score = { correct: 0, wrong: 0 };
@@ -194,7 +200,7 @@ async function advanceToNextFile() {
     const buf = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
     state.currentPdf = pdf;
-    state.currentRange = pickPageRange(pdf.numPages);
+    state.currentRange = pickPageRange(pdf.numPages, state.pagesPerExcerpt);
     await showQuiz();
   } catch (err) {
     console.error(err);
@@ -308,7 +314,7 @@ el.lbFullscreen.addEventListener('click', () => {
 
 async function showQuiz() {
   const { start, count } = state.currentRange;
-  el.excerptNote.textContent = count < EXCERPT_PAGE_COUNT
+  el.excerptNote.textContent = count < state.pagesPerExcerpt
     ? (start === 2
         ? `This piece is short, so every page except the first is shown below.`
         : `This piece only has ${count} page${count === 1 ? '' : 's'}, so that's all there is to show.`)
